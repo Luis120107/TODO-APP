@@ -1,0 +1,95 @@
+const taskInput = document.getElementById('task-input');
+const addBtn = document.getElementById('add-btn');
+const errorMsg = document.getElementById('error-msg');
+const taskList = document.getElementById('task-list');
+
+const countTotal = document.getElementById('count-total');
+const countCompleted = document.getElementById('count-completed');
+const countIncomplete = document.getElementById('count-incomplete');
+
+// Carga inicial exacta con las tareas de la captura
+let tasks = [
+  { id: 1, text: 'Welcome to the todo app!', completed: false },
+  { id: 2, text: 'Esto es una lista de tareas', completed: false },
+  { id: 3, text: 'Tiene contadores', completed: false }
+];
+
+function render() {
+  taskList.innerHTML = '';
+
+  tasks.forEach(task => {
+    const li = document.createElement('li');
+    li.className = `task-item ${task.completed ? 'is-completed' : ''}`;
+
+    li.innerHTML = `
+      <button class="btn-del" onclick="removeTask(${task.id})">✕</button>
+      <div class="task-content">${escapeHtml(task.text)}</div>
+      <button class="btn-check" onclick="toggleTask(${task.id})">✓</button>
+    `;
+
+    taskList.appendChild(li);
+  });
+
+  updateCounters();
+}
+
+function addTask() {
+  const text = taskInput.value.trim();
+
+  if (text === '') {
+    errorMsg.classList.remove('hidden');
+    return;
+  }
+
+  errorMsg.classList.add('hidden');
+
+  tasks.push({
+    id: Date.now(),
+    text: text,
+    completed: false
+  });
+
+  taskInput.value = '';
+  render();
+}
+
+function removeTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  render();
+}
+
+function toggleTask(id) {
+  tasks = tasks.map(t => {
+    if (t.id === id) {
+      return { ...t, completed: !t.completed };
+    }
+    return t;
+  });
+  render();
+}
+
+function updateCounters() {
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  const incomplete = total - completed;
+
+  countTotal.textContent = total;
+  countCompleted.textContent = completed;
+  countIncomplete.textContent = incomplete;
+}
+
+// Previene fallos de seguridad o errores con etiquetas <script>
+function escapeHtml(str) {
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
+
+// Event Listeners
+addBtn.addEventListener('click', addTask);
+taskInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addTask();
+});
+
+// Inicialización
+render();
